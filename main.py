@@ -16,7 +16,7 @@ async def load_artifacts():
     artifacts = joblib.load("churn_model.pkl")
     print("Model, Scaler, Encoders, and Feature Names loaded successfully!")
 
-# ---------- UPDATED PYDANTIC SCHEMA (Matches training columns EXACTLY) ----------
+# ---------- PYDANTIC SCHEMA (Raw Inputs) ----------
 class CustomerInput(BaseModel):
     CreditScore: int = Field(..., ge=300, le=850)
     Age: int = Field(..., ge=18, le=100)
@@ -27,9 +27,8 @@ class CustomerInput(BaseModel):
     IsActiveMember: int = Field(..., ge=0, le=1)
     EstimatedSalary: float = Field(..., ge=0)
     
-    # These must match EXACTLY the strings you used in training
-    Geography: str  # 'France', 'Spain', or 'Germany'
-    Gender: str     # 'Male' or 'Female'
+    Geography: str
+    Gender: str
 
     # Validators to catch bad inputs before they hit the encoder
     @field_validator('Geography')
@@ -50,10 +49,10 @@ class CustomerInput(BaseModel):
 @app.post("/predict")
 async def predict(customer: CustomerInput):
     try:
-        # 1. Convert to DataFrame (keys will be capitalized now)
+        # 1. Convert to DataFrame
         df = pd.DataFrame([customer.dict()])
         
-        # 2. Apply Label Encoders (Now df has 'Gender' and 'Geography' columns)
+        # 2. Apply Label Encoders
         df['Gender'] = artifacts['gender_encoder'].transform(df['Gender'])
         df['Geography'] = artifacts['geo_encoder'].transform(df['Geography'])
         
