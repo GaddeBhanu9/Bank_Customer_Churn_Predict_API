@@ -44,7 +44,7 @@ def preprocess_input(data_dict):
     
     # 4. Scale the numeric features
     numeric_cols = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'EstimatedSalary']
-    df[numeric_cols] = scaler.transform(df[numeric_cols])
+    df[numeric_cols] = scaler.transform(df[numeric_cols].values)
     
     return df
 
