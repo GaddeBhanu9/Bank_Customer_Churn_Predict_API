@@ -19,6 +19,7 @@ def load_artifacts():
 
 model, scaler = load_artifacts()
 
+# --- PREPROCESSING FUNCTION ---
 def preprocess_input(data_dict):
     """
     Converts user inputs into a scaled DataFrame ready for model prediction.
@@ -27,7 +28,7 @@ def preprocess_input(data_dict):
     df = pd.DataFrame([data_dict])
     
     # 2. Encode Categorical Variables
-    geo_map = {'France': 0, 'Germany': 1, 'Spain': 2}  
+    geo_map = {'France': 0, 'Germany': 1, 'Spain': 2}
     gender_map = {'Female': 0, 'Male': 1}
     
     df['Geography'] = df['Geography'].map(geo_map)
@@ -87,51 +88,50 @@ if st.button("🔮 Predict Churn Risk", type="primary"):
     # Get Prediction Probability
     prob = model.predict_proba(processed_df)[0][1]  # Probability of churn
     
-    # Explicit decision logic
-    is_churn = prob > 0.5
-    decision_text = "❌ Customer WILL Churn" if is_churn else "✅ Customer WILL NOT Churn"
-    warning_text = "⚠️ High Risk" if is_churn else "✅ Low Risk"
+    # --- Display Results ---
+    st.divider()
+    st.subheader("📊 Prediction Result")
     
- # --- Display Results ---
-st.divider()
-st.subheader("📊 Prediction Result")
-
-result_col1, result_col2 = st.columns([1, 2])
-
-with result_col1:
-    # Big Metric
-    st.metric(label="Churn Probability", value=f"{prob:.2%}")
+    result_col1, result_col2 = st.columns([1, 2])
     
-    # Show the explicit decision in a HUGE, colored box
-    if prob > 0.5:
-        st.error("❌ Customer WILL Churn")
-        st.caption("⚠️ High Risk")
-    else:
-        st.success("✅ Customer WILL NOT Churn")
-        st.caption("✅ Low Risk")
-
-# --- SHAP Explanation ---
-with result_col2:
-    st.markdown("**Why did the model make this decision?**")
-    try:
-        explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(processed_df)
+    with result_col1:
+        # Big Metric
+        st.metric(label="Churn Probability", value=f"{prob:.2%}")
         
-        fig, ax = plt.subplots(figsize=(20, 4))
-        shap.force_plot(
-            explainer.expected_value, 
-            shap_values[0], 
-            processed_df.iloc[0],
-            matplotlib=True,
-            show=False,
-            figsize=(20, 4)
-        )
-        st.pyplot(fig, bbox_inches='tight')
-        plt.close()
-    except Exception as e:
-        st.warning("SHAP explanation could not be generated for this model type.")
-        st.caption(f"Debug: {e}")
+        # Show explicit decision in colored boxes
+        if prob > 0.5:
+            st.error("❌ Customer WILL Churn")
+            st.caption("⚠️ High Risk")
+        else:
+            st.success("✅ Customer WILL NOT Churn")
+            st.caption("✅ Low Risk")
+    
+    # --- SHAP Explanation ---
+    with result_col2:
+        st.markdown("**Why did the model make this decision?**")
+        try:
+            explainer = shap.TreeExplainer(model)
+            shap_values = explainer.shap_values(processed_df)
+            
+            fig, ax = plt.subplots(figsize=(20, 4))
+            shap.force_plot(
+                explainer.expected_value,
+                shap_values[0],
+                processed_df.iloc[0],
+                matplotlib=True,
+                show=False,
+                figsize=(20, 4)
+            )
+            st.pyplot(fig, bbox_inches='tight')
+            plt.close()
+        except Exception as e:
+            st.warning("SHAP explanation could not be generated for this model type.")
+            st.caption(f"Debug: {e}")
+    
+    # --- Disclaimer ---
+    st.divider()
+    st.caption("⚠️ **Disclaimer:** This is a demonstration prototype using synthetic data. Do not use for real financial decisions.")
 
-# --- Disclaimer ---
-st.divider()
-st.caption("⚠️ **Disclaimer:** This is a demonstration prototype using synthetic data. Do not use for real financial decisions.")
+# --- Footer ---
+st.sidebar.markdown("---")
+st.sidebar.caption("Built with ❤️ using Streamlit")
