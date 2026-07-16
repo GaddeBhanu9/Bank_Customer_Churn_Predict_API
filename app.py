@@ -86,7 +86,11 @@ if st.button("🔮 Predict Churn Risk", type="primary"):
     
     # Get Prediction Probability
     prob = model.predict_proba(processed_df)[0][1]  # Probability of churn
-    prediction_label = "⚠️ High Churn Risk" if prob > 0.5 else "✅ Low Churn Risk"
+    
+    # Explicit decision logic
+    is_churn = prob > 0.5
+    decision_text = "❌ Customer WILL Churn" if is_churn else "✅ Customer WILL NOT Churn"
+    warning_text = "⚠️ High Risk" if is_churn else "✅ Low Risk"
     
     # --- Display Results ---
     st.divider()
@@ -94,13 +98,17 @@ if st.button("🔮 Predict Churn Risk", type="primary"):
     
     result_col1, result_col2 = st.columns([1, 2])
     
-    with result_col1:
+        with result_col1:
         # Big Metric
         st.metric(label="Churn Probability", value=f"{prob:.2%}")
+        
+        # Show the explicit decision in a HUGE, colored box
         if prob > 0.5:
-            st.error(prediction_label)
+            st.error(decision_text)  # Red box
+            st.caption(warning_text)
         else:
-            st.success(prediction_label)
+            st.success(decision_text)  # Green box
+            st.caption(warning_text)
     
     # --- SHAP Explanation ---
     with result_col2:
@@ -109,16 +117,16 @@ if st.button("🔮 Predict Churn Risk", type="primary"):
             explainer = shap.TreeExplainer(model)
             shap_values = explainer.shap_values(processed_df)
             
-            fig, ax = plt.subplots(figsize=(10, 3))
+            fig, ax = plt.subplots(figsize=(20, 4))
             shap.force_plot(
                 explainer.expected_value, 
                 shap_values[0], 
                 processed_df.iloc[0],
                 matplotlib=True,
                 show=False,
-                figsize=(10, 3)
+                figsize=(20, 4)
             )
-            st.pyplot(fig)
+            st.pyplot(fig,bbox_inches = 'tight')
             plt.close()
         except Exception as e:
             st.warning("SHAP explanation could not be generated for this model type.")
