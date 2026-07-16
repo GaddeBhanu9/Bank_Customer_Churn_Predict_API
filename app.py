@@ -92,50 +92,46 @@ if st.button("🔮 Predict Churn Risk", type="primary"):
     decision_text = "❌ Customer WILL Churn" if is_churn else "✅ Customer WILL NOT Churn"
     warning_text = "⚠️ High Risk" if is_churn else "✅ Low Risk"
     
-    # --- Display Results ---
-    st.divider()
-    st.subheader("📊 Prediction Result")
-    
-    result_col1, result_col2 = st.columns([1, 2])
-    
-        with result_col1:
-        # Big Metric
-        st.metric(label="Churn Probability", value=f"{prob:.2%}")
-        
-        # Show the explicit decision in a HUGE, colored box
-        if prob > 0.5:
-            st.error(decision_text)  # Red box
-            st.caption(warning_text)
-        else:
-            st.success(decision_text)  # Green box
-            st.caption(warning_text)
-    
-    # --- SHAP Explanation ---
-    with result_col2:
-        st.markdown("**Why did the model make this decision?**")
-        try:
-            explainer = shap.TreeExplainer(model)
-            shap_values = explainer.shap_values(processed_df)
-            
-            fig, ax = plt.subplots(figsize=(20, 4))
-            shap.force_plot(
-                explainer.expected_value, 
-                shap_values[0], 
-                processed_df.iloc[0],
-                matplotlib=True,
-                show=False,
-                figsize=(20, 4)
-            )
-            st.pyplot(fig,bbox_inches = 'tight')
-            plt.close()
-        except Exception as e:
-            st.warning("SHAP explanation could not be generated for this model type.")
-            st.caption(f"Debug: {e}")
-    
-    # --- Disclaimer ---
-    st.divider()
-    st.caption("⚠️ **Disclaimer:** This is a demonstration prototype using synthetic data. Do not use for real financial decisions.")
+ # --- Display Results ---
+st.divider()
+st.subheader("📊 Prediction Result")
 
-# --- Footer ---
-st.sidebar.markdown("---")
-st.sidebar.caption("Built with ❤️ using Streamlit")
+result_col1, result_col2 = st.columns([1, 2])
+
+with result_col1:
+    # Big Metric
+    st.metric(label="Churn Probability", value=f"{prob:.2%}")
+    
+    # Show the explicit decision in a HUGE, colored box
+    if prob > 0.5:
+        st.error("❌ Customer WILL Churn")
+        st.caption("⚠️ High Risk")
+    else:
+        st.success("✅ Customer WILL NOT Churn")
+        st.caption("✅ Low Risk")
+
+# --- SHAP Explanation ---
+with result_col2:
+    st.markdown("**Why did the model make this decision?**")
+    try:
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer.shap_values(processed_df)
+        
+        fig, ax = plt.subplots(figsize=(20, 4))
+        shap.force_plot(
+            explainer.expected_value, 
+            shap_values[0], 
+            processed_df.iloc[0],
+            matplotlib=True,
+            show=False,
+            figsize=(20, 4)
+        )
+        st.pyplot(fig, bbox_inches='tight')
+        plt.close()
+    except Exception as e:
+        st.warning("SHAP explanation could not be generated for this model type.")
+        st.caption(f"Debug: {e}")
+
+# --- Disclaimer ---
+st.divider()
+st.caption("⚠️ **Disclaimer:** This is a demonstration prototype using synthetic data. Do not use for real financial decisions.")
