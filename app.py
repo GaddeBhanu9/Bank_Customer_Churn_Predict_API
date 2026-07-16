@@ -19,7 +19,6 @@ def load_artifacts():
 
 model, scaler = load_artifacts()
 
-# --- PREPROCESSING FUNCTION ---
 def preprocess_input(data_dict):
     """
     Converts user inputs into a scaled DataFrame ready for model prediction.
@@ -28,22 +27,21 @@ def preprocess_input(data_dict):
     df = pd.DataFrame([data_dict])
     
     # 2. Encode Categorical Variables
-    # ✅ FIXED: Changed to match your model's LabelEncoder (Alphabetical: France=0, Germany=1, Spain=2)
     geo_map = {'France': 0, 'Germany': 1, 'Spain': 2}  
-    gender_map = {'Female': 0, 'Male': 1}  # ✅ Correct (F=0, M=1)
+    gender_map = {'Female': 0, 'Male': 1}
     
     df['Geography'] = df['Geography'].map(geo_map)
     df['Gender'] = df['Gender'].map(gender_map)
     
-    # 3. EXACT column order from your X_train (✅ Matches your output)
+    # 3. EXACT column order from your X_train
     feature_names = [
         'CreditScore', 'Geography', 'Gender', 'Age', 'Tenure',
         'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary'
     ]
     df = df[feature_names]
     
-    # 4. Scale the numeric features
-         df[feature_names] = scaler.transform(df[feature_names].values))
+    # 4. Scale ALL features (scaler expects 10 columns)
+    df[feature_names] = scaler.transform(df[feature_names].values)
     
     return df
 
